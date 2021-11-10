@@ -1,0 +1,248 @@
+boolean gameOver; // Fin de partie ou non 
+boolean help; // Affichage de l'écran d'aide ou non
+boolean play; // la partie se lance ou non
+// variables score
+int score = 0;
+int highscore = 0;
+// Variables ressources
+PImage ballon;
+PImage anneau;
+PFont fonte16;
+// variables intégrant le code du nuage en fd d'écran
+float cloudspeed = 1;
+float cloudX = 150;
+float cloudY = random (100, 400);
+// variables mouvement anneau
+float anneauX = 320;
+float anneauY = random (100, 400);
+float anneauspeed = -1;
+// variables mouvement ballon
+float posX = 50;
+float posY = 250;
+float speedY = 0;
+final float g = 0.2; // Force de pesanteur
+
+
+void setup() {
+  size (300, 500);
+  
+  ballon = loadImage ("Ballon.png");
+  anneau = loadImage ("Anneau.png");
+  fonte16 = createFont ("joystix.ttf", 16);
+
+  if (play == false) {
+    init ();
+  }
+
+
+}
+
+
+void draw() {
+
+  
+  if (play == true) { // la partie se lance
+    
+    background (#12DBFC);
+  
+    cloud();
+  
+    newAnneau ();
+    
+    hit();
+    
+    miss();
+  
+    updatePositions ();
+    
+    image (ballon, posX, posY, 26, 26);
+    
+    collisionbords ();
+    
+    updatedisplay ();
+    
+    bestplay ();
+    
+    topscores();
+    
+    fill (255);
+    textFont(fonte16);           // affichage du score
+    textSize (32);
+    text (""+ score, 245, 20);
+    
+    
+  }
+  
+}
+
+
+void updatedisplay() { // mise a jour de la fenetre lorsqu'on perd
+  if (gameOver == true) {
+    
+    fill (255);
+    textAlign (LEFT, CENTER);
+    textFont (fonte16);
+    text ("GAME OVER", 90, 150);
+    text ("click to start again", 20, 200);
+    text ("your score is :"+score, 50, 250);
+    text ("highscore :"+highscore, 50, 300);
+  }
+ 
+        
+}
+
+
+void updatePositions() { // mouvement et interaction balle/anneau
+  anneauX = anneauX + anneauspeed;
+  speedY += g;
+  posY += speedY;
+  
+  if (posX + 13 > anneauX && posX + 13 < anneauX + 18) {
+    if (posY + 26 > anneauY + 3 && posY + 26 < anneauY + 13) {
+      speedY = speedY * -0.7;
+    }
+  }
+  
+  if (posX + 13 > anneauX + 62 && posX + 13 < anneauX + 80) {
+    if (posY + 26 > anneauY + 3 && posY + 26 < anneauY +13) {
+      speedY = speedY * -0.7;
+    }
+  }
+  
+  
+} 
+
+void bestplay() { // enregistre le meilleur score
+  if (score > highscore) {
+    highscore = score;
+  }
+}
+
+void miss() { // lorsqu'on loupe l'anneau
+  if (anneauX + 20 < 0) {
+    gameOver = true;
+    play = false;
+  }
+}
+
+
+void keyPressed() { 
+  if (key == CODED) {
+    if (keyCode == UP) {
+      speedY = -6;  // rebond du ballon
+      
+    }
+    if (keyCode == UP) {
+      play = true;
+    }
+   
+  }
+  if (key == 'h') {
+    help = true;
+  }
+}
+
+void mousePressed () { 
+  gameOver = false;
+  score = 0;
+  init();
+  posY = 250;
+  cloudX = 150;
+  cloudY = random (100, 400);
+  anneauX = 320;
+  anneauY = random ( 100, 400);
+  
+
+      
+}
+    
+
+  
+
+
+void hit() { // la balle passe a l'interieur de l'anneau
+  if (speedY > 0) {
+    if (posX + 13 > anneauX + 18 && posX + 13 < anneauX + 62) {
+      if (posY + 26 > anneauY + 5 && posY + 26 < anneauY + 15) {
+        anneauX = 300;
+        anneauY = random(100, 400);
+        score += 1;
+      }
+    }
+  }
+}
+
+
+void newAnneau() {  // affichage d'un nouvel anneau
+  rect (anneauX, anneauY + 3, 18, 10);
+  rect (anneauX + 62, anneauY + 3, 18, 10);
+  rect (anneauX + 18, anneauY + 5, 44, 10);
+  image (anneau, anneauX, anneauY, 80, 20);
+  
+  
+  
+}
+
+void cloud() { // fonction déssinant le nuage en fd d'écran
+  fill (255);
+  noStroke ();
+  ellipse (cloudX, cloudY, 35, 35);
+  ellipse (cloudX + 20, cloudY - 10, 50, 50);
+  ellipse (cloudX + 47, cloudY - 10, 12, 12);
+  ellipse (cloudX + 48, cloudY + 6, 29, 29);
+  fill (#12DBFC);
+  rect (cloudX - 50, cloudY +10, 120, 50);
+  cloudX = cloudX - cloudspeed;
+  if (cloudX + 60 < 0) { // abcisse du nuage
+    cloudX = 340;
+    cloudY = cloudY + random (-200, 200);
+  }
+  
+  if (cloudY < 30) { // ordonnée min du nuage
+    cloudX = 340;
+    cloudY = cloudY + 200;
+  }
+  
+  if (cloudY > 450) { // ordonée max du nuage
+    cloudX = 340;
+    cloudY = cloudY - 200;
+  }
+
+  
+}
+
+
+void init() { // Ecran d'acceuil
+  background (#12DBFC);
+  fill (255);
+  textAlign (LEFT, CENTER);
+  textFont (fonte16);
+  text ("Press Up to play", 40, 230);
+
+}
+
+void collisionbords () { // la balle touche le sol ou le plafond
+  if (posY < -3 || posY > 503) {
+    gameOver = true;
+    play = false;
+  }
+}
+
+void topscores () { // augmente la difficulté
+  if (score < 5) {
+    cloudspeed = 1;
+    anneauspeed = -1;
+  }
+  if (score > 5) {
+    cloudspeed = 1.3;
+    anneauspeed = -1.3;
+  }
+  if (score > 10) {
+    cloudspeed = 1.6;
+    anneauspeed = -1.6;
+  }
+  if (score > 20) {
+    cloudspeed = 2;
+    anneauspeed = -2;
+  }
+}
